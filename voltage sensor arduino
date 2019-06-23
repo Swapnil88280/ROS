@@ -1,0 +1,44 @@
+#include <ros.h>
+#include <ros/time.h>
+#include <sensor_msgs/BatteryState.h>
+
+ros::NodeHandle nh;
+
+#define VoltagePin  A0 //   analog pin
+
+int SensorData;
+
+sensor_msgs::BatteryState battery_msg;
+ros::Publisher pub_battery("Battery" , &battery_msg);
+
+void setup()
+{
+  nh.initNode();           //initialize the node
+  nh.advertise(pub_battery); 
+
+  battery_msg.capacity = 20;   //constant value
+
+  pinMode(VoltagePin, INPUT);
+}
+
+float get_voltage()           //declaration of function
+{
+  float R1=30000;             //resistor value
+  float R2=7500;              //resistor value
+  SensorData=analogRead(A0);  
+  float Voltage = (5*SensorData*(R1+R2))/(1024*R2);
+  return Voltage;
+  delay(500);
+}
+
+long battery_time;
+
+void loop()
+{
+    battery_msg.voltage = get_voltage();
+    battery_msg.header.stamp = nh.now();
+    pub_battery.publish(&battery_msg);
+  
+nh.spinOnce();
+delay(10);
+}
